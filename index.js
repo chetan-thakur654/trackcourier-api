@@ -8,9 +8,13 @@ const PORT = 3001;
 
 // // Launch a headless browser with Puppeteer
 const browserInstance = puppeteer.launch({
-  // headless: "new",
-  headless: false,
+  headless: "new",
+  // headless: false,
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
+});
+
+app.get("/", (req, res) => {
+  res.json("hello! Api is running successfully. ");
 });
 
 app.get("/api/track/:courier/:trackingNo", async (req, res) => {
