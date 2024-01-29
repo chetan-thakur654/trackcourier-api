@@ -8,8 +8,10 @@ const PORT = 3001;
 
 // // Launch a headless browser with Puppeteer
 let browserInstance = puppeteer.launch({
+  timeout: 120000,
+  waitUntil: "load",
   // headless: "new",
-  headless: false,
+  // headless: false,
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
@@ -61,7 +63,8 @@ app.get("/api/track/:courier/:trackingNo", async (req, res) => {
     return res.json({ trackingInfo, url: dynamicUrl });
   } catch (err) {
     return res.status(500).json({
-      error: "Internal Server Error ! It Will Be Fixed Soon.",
+      error: err.message,
+      // error: "Internal Server Error ! It Will Be Fixed Soon.",
       url: dynamicUrl,
     });
   } finally {
