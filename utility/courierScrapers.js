@@ -2,7 +2,7 @@ const courierScrapers = {
   "mark-express-courier-tracking": {
     scrapeData: async (trackingId, page) => {
       // Construct the URL for tracking information
-      const url = `dhttp://crm.markerp.in/Frm_DocTrackWeb.aspx?docno=${trackingId}`;
+      const url = `http://crm.markerp.in/Frm_DocTrackWeb.aspx?docno=${trackingId}`;
 
       // Navigate to the tracking page and wait for it to load
       await page.goto(url, { timeout: 120000, waitUntil: "load" });

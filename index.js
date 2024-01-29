@@ -7,9 +7,9 @@ const app = express();
 const PORT = 3001;
 
 // // Launch a headless browser with Puppeteer
-const browserInstance = puppeteer.launch({
-  headless: "new",
-  // headless: false,
+let browserInstance = puppeteer.launch({
+  // headless: "new",
+  headless: false,
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
