@@ -153,115 +153,115 @@ const courierScrapers = {
 
     //     return trackingInfo;
     //   },
-    //   url: (trackingId) => {
-    //     return `https://www.tpcindia.com/track-info.aspx?id=${trackingId}`;
-    //   },
-    // },
-    // "midland-courier-tracking": {
-    //   url: (trackingId) => {
-    //     return `https://ship.midlandtransport.com/Tracking/TrackClientTrackings?TrackingNumber=${trackingId}`;
-    //   },
-    // },
-    // "shiprocket-courier-tracking": {
-    //   url: (trackingId) => {
-    //     return `https://shiprocket.co/tracking/${trackingId}`;
-    //   },
-    // },
-    // "bpl-cargo-courier-tracking": {
-    //   url: (trackingId) => {
-    //     return `https://bplcargo.com/track/?invoice=${trackingId}`;
-    //   },
-    // },
-    // "vrl-logistics-courier-tracking": {
-    //   url: (trackingId) => {
-    //     return `https://www.vrlgroup.in/track_consignment.aspx`;
-    //   },
-    // },
-    // "accurate-freight-carrier-tracking": {
-    //   url: (trackingId) => {
-    //     return `http://103.13.97.213/AFC/Home/IndexDocketStatus?DocketNo=${trackingId}`;
-    //   },
-    // },
-    // "apex-courier-tracking": {
-    //   url: (trackingId) => {
-    //     return `http://www.apexcourier.in/tracking-status.php`;
-    //   },
-    // },
-    // "digital-delivery-courier-tracking": {
-    //   url: (trackingId) => {
-    //     return `https://digitalcouriercargo.com/fetch-track-order/`;
-    //   },
-    // },
-    // "spicejet-cargo-tracking": {
-    //   url: (trackingId) => {
-    //     return `https://www.spicexpress.com/getSingleAwbDetails?tracking_id=${trackingId}
-    //     `;
-    //   },
-    // },
-    // "kabra-express-logistics-tracking": {
-    //   url: (trackingId) => {
-    //     return `http://www.kabraexpress.in/index
-    //     `;
-    //   },
-    // },
-    // "shree-anjani-courier-tracking": {
-    //   scrapeData: async (trackingId, page) => {
-    //     // Construct the URL for tracking information
-    //     const url = `http://anjanicourier.in/Doc_Track.aspx?No=${trackingId}`;
+    url: (trackingId) => {
+      return `https://www.tpcindia.com/track-info.aspx?id=${trackingId}`;
+    },
+  },
+  "midland-courier-tracking": {
+    url: (trackingId) => {
+      return `https://ship.midlandtransport.com/Tracking/TrackClientTrackings?TrackingNumber=${trackingId}`;
+    },
+  },
+  "shiprocket-courier-tracking": {
+    url: (trackingId) => {
+      return `https://shiprocket.co/tracking/${trackingId}`;
+    },
+  },
+  "bpl-cargo-courier-tracking": {
+    url: (trackingId) => {
+      return `https://bplcargo.com/track/?invoice=${trackingId}`;
+    },
+  },
+  "vrl-logistics-courier-tracking": {
+    url: (trackingId) => {
+      return `https://www.vrlgroup.in/track_consignment.aspx`;
+    },
+  },
+  "accurate-freight-carrier-tracking": {
+    url: (trackingId) => {
+      return `http://103.13.97.213/AFC/Home/IndexDocketStatus?DocketNo=${trackingId}`;
+    },
+  },
+  "apex-courier-tracking": {
+    url: (trackingId) => {
+      return `http://www.apexcourier.in/tracking-status.php`;
+    },
+  },
+  "digital-delivery-courier-tracking": {
+    url: (trackingId) => {
+      return `https://digitalcouriercargo.com/fetch-track-order/`;
+    },
+  },
+  "spicejet-cargo-tracking": {
+    url: (trackingId) => {
+      return `https://www.spicexpress.com/getSingleAwbDetails?tracking_id=${trackingId}
+        `;
+    },
+  },
+  "kabra-express-logistics-tracking": {
+    url: (trackingId) => {
+      return `http://www.kabraexpress.in/index
+        `;
+    },
+  },
+  "shree-anjani-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://anjanicourier.in/Doc_Track.aspx?No=${trackingId}`;
 
-    //     // Navigate to the tracking page and wait for it to load
-    //     await page.goto(url, { timeout: 120000, waitUntil: "load" });
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 120000, waitUntil: "load" });
 
-    //     // Extract tracking information using Puppeteer's evaluate function
-    //     const trackingInfo = await page.evaluate(() => {
-    //       // Extract delivery status
-    //       const deliveryStatus = document.querySelector("#lblStatus").innerText;
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        // Extract delivery status
+        const deliveryStatus = document.querySelector("#lblStatus").innerText;
 
-    //       // Placeholder for scheduled delivery, update if applicable
-    //       let scheduledDelivery;
+        // Placeholder for scheduled delivery, update if applicable
+        let scheduledDelivery;
 
-    //       // Extract checkpoints information
-    //       const checkpoints = Array.from(
-    //         document.querySelectorAll("#EntryTbl > tbody > tr")
-    //       )
-    //         .slice(0, -1)
-    //         .map((locationRow, index) => {
-    //           if (index % 2 === 0) {
-    //             const timeDateRow = document.querySelectorAll(
-    //               "#EntryTbl > tbody > tr"
-    //             )[index + 1];
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll("#EntryTbl > tbody > tr")
+        )
+          .slice(0, -1)
+          .map((locationRow, index) => {
+            if (index % 2 === 0) {
+              const timeDateRow = document.querySelectorAll(
+                "#EntryTbl > tbody > tr"
+              )[index + 1];
 
-    //             const locationCell = locationRow.querySelector("td:nth-child(2)");
-    //             const timeDateCell = timeDateRow.querySelector("td:nth-child(2)");
+              const locationCell = locationRow.querySelector("td:nth-child(2)");
+              const timeDateCell = timeDateRow.querySelector("td:nth-child(2)");
 
-    //             const locationText = locationCell.innerText;
-    //             const timeDateText = timeDateCell.innerText;
+              const locationText = locationCell.innerText;
+              const timeDateText = timeDateCell.innerText;
 
-    //             const dateMatch = timeDateText.match(/\d{2}\/\d{2}\/\d{2}/);
-    //             const timeMatch = timeDateText.match(/\d{2}:\d{2} (AM|PM)/);
+              const dateMatch = timeDateText.match(/\d{2}\/\d{2}\/\d{2}/);
+              const timeMatch = timeDateText.match(/\d{2}:\d{2} (AM|PM)/);
 
-    //             if (dateMatch && timeMatch) {
-    //               const date = dateMatch[0];
-    //               const time = timeMatch[0];
+              if (dateMatch && timeMatch) {
+                const date = dateMatch[0];
+                const time = timeMatch[0];
 
-    //               return {
-    //                 date,
-    //                 time,
-    //                 courierName: "Anjani Courier",
-    //                 activity: locationText,
-    //                 location: locationText,
-    //               };
-    //             }
-    //           }
+                return {
+                  date,
+                  time,
+                  courierName: "Anjani Courier",
+                  activity: locationText,
+                  location: locationText,
+                };
+              }
+            }
 
-    //           return null;
-    //         })
-    //         .filter(Boolean);
-    //       return { deliveryStatus, scheduledDelivery, checkpoints };
-    //     });
+            return null;
+          })
+          .filter(Boolean);
+        return { deliveryStatus, scheduledDelivery, checkpoints };
+      });
 
-    //     return trackingInfo;
-    //   },
+      return trackingInfo;
+    },
     url: (trackingId) => {
       return `http://anjanicourier.in/Doc_Track.aspx?No=${trackingId}`;
     },
