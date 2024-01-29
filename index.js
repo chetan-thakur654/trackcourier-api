@@ -10,8 +10,7 @@ const PORT = 3001;
 let browserInstance = puppeteer.launch({
   timeout: 120000,
   waitUntil: "load",
-  // headless: "new",
-  // headless: false,
+
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
