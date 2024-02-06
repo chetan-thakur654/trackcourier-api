@@ -47,13 +47,9 @@ app.get("/api/track/:courier/:trackingNo", async (req, res) => {
 
     // // Invoke the corresponding scraper function for the courier
     const trackingInfo = await courierScraper.scrapeData(trackingNo, page);
-
+    console.log(trackingInfo);
     // // Check if tracking information is found
-    if (
-      !trackingInfo ||
-      !trackingInfo.checkpoints ||
-      trackingInfo.checkpoints.length === 0
-    ) {
+    if (!trackingInfo) {
       return res.status(402).json({
         error: "No tracking information found. Please check your tracking ID.",
         url: dynamicUrl,
@@ -63,8 +59,8 @@ app.get("/api/track/:courier/:trackingNo", async (req, res) => {
     return res.json({ trackingInfo, url: dynamicUrl });
   } catch (err) {
     return res.status(500).json({
-      error: err.message,
-      // error: "Internal Server Error ! It Will Be Fixed Soon.",
+      // error: err.message,
+      error: "Internal Server Error ! It Will Be Fixed Soon.",
       url: dynamicUrl,
     });
   } finally {
