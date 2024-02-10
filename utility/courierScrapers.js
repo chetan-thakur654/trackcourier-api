@@ -1,4 +1,271 @@
 const courierScrapers = {
+  "sda-express-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.sda.it/wps/portal/Servizi_online/ricerca_spedizioni?locale=it&tracing.letteraVettura=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      // await page.waitForTimeout(3000);
+
+      await page.waitForSelector(`#linkDettSped`, {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+
+      await page.click("#linkDettSped");
+
+      await page.waitForSelector(
+        `#collapseExample > div:nth-child(1) > div > div > table`,
+        {
+          timeout: 60000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#collapseExample > div:nth-child(1) > div > div > table > tbody > tr"
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)").innerText,
+          time: "",
+          activity: checkpoint.querySelector("td:nth-child(2)").innerText,
+          courierName: "SDA Express Italy",
+          location: checkpoint.querySelector("td:nth-child(3)").innerText,
+        }));
+
+        return { checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) =>
+      `https://www.sda.it/wps/portal/Servizi_online/ricerca_spedizioni?locale=it&tracing.letteraVettura=${trackingId}`,
+  },
+  "postex-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://merchant.postex.pk/?cn=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForTimeout(3000);
+
+      await page.waitForSelector(`#parent-timeline > div > div`, {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        const checkpoints = Array.from(
+          document.querySelectorAll("#parent-timeline > div > div")
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("label:nth-child(2)").innerText,
+          time: "",
+          activity: checkpoint.querySelector("label:nth-child(1)").innerText,
+          courierName: "PostEx",
+          location: "",
+        }));
+
+        return { checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://merchant.postex.pk/?cn=${trackingId}`,
+  },
+  "om-logistics-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://omsanchar.omlogistics.co.in/omcntrack/`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(`#myText`, {
+        timeout: 20000,
+        waitUntil: "load",
+      });
+
+      //Add tracking Id to input box
+      await page.type("#myText", trackingId);
+
+      await page.click("#cons > div.col-md-12.center-block > div > button");
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#dhide");
+
+      await page.waitForSelector(
+        `#myModal > div.modal-dialog.modal-md.visible-lg > div > div.modal-body > ul > li`,
+        {
+          timeout: 10000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector("#booking_statuss")
+          .innerText.trim();
+
+        let from = await document.querySelector("#booking_froms").innerText;
+        let to = await document.querySelector("#booking_tos").innerText;
+
+        // Extract checkpoints information
+        const checkpoints = await Array.from(
+          document.querySelectorAll(
+            "#myModal > div.modal-dialog.modal-md.visible-lg > div > div.modal-body > ul > li"
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint
+            .querySelector("div > div.flag-wrapper > span")
+            .innerText.trim(),
+          time: "",
+          activity: checkpoint
+            .querySelector("div > div.desc > b")
+            .innerText.trim(),
+          courierName: "OM Logistics",
+          location: "",
+        }));
+
+        return { deliveryStatus, to, from, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://omsanchar.omlogistics.co.in/omcntrack/`,
+  },
+  "lalji-mulji-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://www.lmtco.com/tracking-serices.html`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(`#lrNumber`, {
+        timeout: 20000,
+        waitUntil: "load",
+      });
+
+      //Add tracking Id to input box
+      await page.type("#lrNumber", trackingId);
+
+      await page.click(
+        "body > div > div.container-fluid.block-content > div > div.col-md-4 > div > button"
+      );
+
+      await page.waitForSelector(`#trakingInfo > ul > li`, {
+        timeout: 20000,
+        waitUntil: "load",
+      });
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract checkpoints information
+        const checkpoints = await Array.from(
+          document.querySelectorAll("#trakingInfo > ul > li")
+        ).map((checkpoint) => ({
+          date: getComputedStyle(checkpoint, ":before").getPropertyValue(
+            "content"
+          ),
+          time: "",
+          activity: checkpoint.querySelector("h4").innerText,
+          courierName: "Lalji Mulji Transport",
+          location: checkpoint.querySelector("p").innerText,
+        }));
+
+        return { checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `http://www.lmtco.com/tracking-serices.html`,
+  },
+  "dtdc-india-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://tracking.dtdc.com/ctbs-tracking/customerInterface.tr?submitName=showCITrackingDetails&cnNo=${trackingId}&cType=Consignment`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.click(".accordion-toggle > div > h3 > u");
+
+      // await page.waitForNavigation({ timeout: 10000 });
+
+      const selector = await page.waitForSelector(
+        `#activityDetailsForChildCn_${trackingId} > tr:nth-child(1)`,
+        {
+          timeout: 20000,
+          waitUntil: "load",
+        }
+      );
+
+      if (!selector) {
+        throw new Error();
+      }
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate((trackingId) => {
+        // Extract delivery status
+        const deliveryStatus = document.querySelector("#lsSt").innerText.trim();
+        let from = document
+          .querySelector(
+            "#main > div > div > div > span:nth-child(1) > div > div.widget-content > table:nth-child(3) > tbody > tr:nth-child(1) > td:nth-child(2)"
+          )
+          .innerText.trim();
+
+        let to = document
+          .querySelector(
+            "#main > div > div > div > span:nth-child(1) > div > div.widget-content > table:nth-child(3) > tbody > tr:nth-child(1) > td:nth-child(4)"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#activityDetailsForChildCn_${trackingId} > tr`
+          )
+        )
+          .filter((_, index) => index % 2 === 0)
+          .map((checkpoint) => ({
+            date: checkpoint
+              .querySelector("td:nth-child(1)")
+              .innerText.split("|")[0],
+            time: checkpoint
+              .querySelector("td:nth-child(1)")
+              .innerText.split("|")[1],
+            activity: checkpoint.querySelector("td:nth-child(2)").innerText,
+            courierName: "DTDC India ",
+            location: checkpoint.querySelector("td:nth-child(5)").innerText,
+          }));
+
+        return { deliveryStatus, from, to, checkpoints };
+      }, trackingId);
+
+      return trackingInfo;
+      //   //   } catch (err) {
+      //   //     return { error: err.message };
+      //   //   }
+    },
+
+    url: (trackingId) =>
+      `https://tracking.dtdc.com/ctbs-tracking/customerInterface.tr?submitName=showCITrackingDetails&cnNo=${trackingId}&cType=Consignment`,
+  },
   "mark-express-courier-tracking": {
     scrapeData: async (trackingId, page) => {
       // Construct the URL for tracking information
@@ -626,11 +893,7 @@ const courierScrapers = {
       return `https://stcourier.com/track/shipment`;
     },
   },
-  "postex-tracking": {
-    url: (trackingId) => {
-      return `https://merchant.postex.pk/?cn=${trackingId}`;
-    },
-  },
+
   "ithink-logistics-courier-tracking": {
     url: (trackingId) => {
       return `https://www.ithinklogistics.com/track-order`;
@@ -651,11 +914,7 @@ const courierScrapers = {
       return `https://tracking.loadshare.net/waybill`;
     },
   },
-  "om-logistics-courier-tracking": {
-    url: (trackingId) => {
-      return `https://omsanchar.omlogistics.co.in/omcntrack/`;
-    },
-  },
+
   "deccan-queen-courier-tracking": {
     url: (trackingId) => {
       return `https://www.deccanqueen.net/`;
@@ -675,7 +934,7 @@ const courierScrapers = {
     url: (trackingId) => `https://www.tpcindia.com/Default.aspx`,
   },
   "dp-world-container-tracking": {
-    url: (trackingId) => `https://www.dpworld.com/india`,
+    url: (trackingId) => `https://www.dpworld.com/`,
   },
   "gms-courier-tracking": {
     url: (trackingId) => `https://gmsworldwide.com/`,
@@ -919,9 +1178,7 @@ const courierScrapers = {
   "rivigo-courier-tracking": {
     url: (trackingId) => `https://rivigo.com/`,
   },
-  "sda-express-courier-tracking": {
-    url: (trackingId) => `https://www.sda.it/wps/portal/sdait.home/`,
-  },
+
   "marudhar-courier-tracking": {
     url: (trackingId) => `https://www.marudharexpress.com/`,
   },
@@ -953,7 +1210,7 @@ const courierScrapers = {
     url: (trackingId) => `https://www.pushpakcourier.net/`,
   },
   "v-trans-courier-tracking": {
-    url: (trackingId) => `https://vtransgroup.com/track-trace/`,
+    url: (trackingId) => `https://vtransgroup.com/track-trace-result`,
   },
   "parisi-grand-smooth-logistics-courier-tracking": {
     url: (trackingId) => `https://pgs-log.com/india-express/`,
@@ -962,7 +1219,8 @@ const courierScrapers = {
     url: (trackingId) => `https://www.cne.com/`,
   },
   "skynet-australia-tracking": {
-    url: (trackingId) => `https://www.skynet.net/australia`,
+    url: (trackingId) =>
+      `https://www.skynet.net/tracking_public?skybill=${trackingId}`,
   },
   "ondot-courier-tracking": {
     url: (trackingId) => `http://ondotcouriers.co.in/`,
@@ -1793,9 +2051,7 @@ const courierScrapers = {
     url: () =>
       "https://www.dsv.com/en/our-solutions/modes-of-transport/road-transport/online-services-and-document-handling",
   },
-  "dtdc-courier-tracking": {
-    url: () => "https://www.dtdc.com/track",
-  },
+
   "dtdc-express-global-tracking": {
     url: () => "https://www.dtdc.in/tracking.asp",
   },
@@ -2219,9 +2475,6 @@ const courierScrapers = {
   },
   "lakeside-collection-order-tracking": {
     url: () => "https://www.lakeside.com/",
-  },
-  "lalji-mulji-courier-tracking": {
-    url: () => "http://www.lmtco.com/tracking-serices",
   },
   "lamps-plus-order-tracking": {
     url: () => "https://www.lampsplus.com/account/order-history/",
@@ -2820,7 +3073,7 @@ const courierScrapers = {
     url: () => "https://transworld-terminals.com",
   },
   "zapvi-order-tracking": {
-    url: () => "https://zapvi.in/",
+    url: () => "https://zapvi.in/track-order/",
   },
   "flipkart-order-tracking": {
     url: () => "https://www.flipkart.com/",
@@ -2871,7 +3124,7 @@ const courierScrapers = {
     url: () => "https://6ecargo.goindigo.in/",
   },
   "international-express-courier-tracking": {
-    url: () => "http://www.internationalexp.com/Default.aspx",
+    url: () => "http://www.internationalexp.com/Tracking.aspx",
   },
   "canada-post-office-tracking": {
     url: () => "https://www.canadapost-postescanada.ca/cpc/en?name=tgt",
@@ -2944,7 +3197,7 @@ const courierScrapers = {
     url: () => "https://www.shipco.com/",
   },
   "stun-sign-logistics-tracking": {
-    url: () => "https://www.sskerala.com/",
+    url: () => "https://www.sskerala.com/tracking/",
   },
   "online-express-courier-tracking": {
     url: () => "https://onlinexpress.co.in/",
@@ -2977,7 +3230,8 @@ const courierScrapers = {
     url: () => "http://www.maxlogistic.com:8888/Maxlogistic/index.htm",
   },
   "mehta-transport-tracking": {
-    url: () => "https://mehtatransportcorporations.com/",
+    url: (trackingId) =>
+      `http://103.178.248.45:8080/transweb/?consignment=${trackingId}`,
   },
   "efc-logistics-container-tracking": {
     url: () => "https://efclogistics.com/index",
@@ -3575,7 +3829,7 @@ const courierScrapers = {
     url: () => "https://www.deutschepost.de/",
   },
   "ghana-post-tracking": {
-    url: () => "http://www.ghanapost.com.gh/",
+    url: () => "https://globaltracktrace.ptc.post/gtt.web/Search.aspx",
   },
   "gibraltar-post-tracking": {
     url: () => "http://www.post.gi/",
