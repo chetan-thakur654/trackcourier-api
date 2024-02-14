@@ -10,8 +10,8 @@ const PORT = 3001;
 let browserInstance = puppeteer.launch({
   timeout: 120000,
   waitUntil: "load",
-  headless: "new",
-  // headless: false,
+  // headless: "new",
+  headless: false,
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
@@ -47,7 +47,6 @@ app.get("/api/track/:courier/:trackingNo", async (req, res) => {
 
     // // Invoke the corresponding scraper function for the courier
     const trackingInfo = await courierScraper.scrapeData(trackingNo, page);
-    console.log(trackingInfo);
     // // Check if tracking information is found
     if (!trackingInfo) {
       return res.status(402).json({
