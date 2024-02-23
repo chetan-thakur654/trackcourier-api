@@ -1,4 +1,737 @@
 const courierScrapers = {
+  "cosmic-air-service-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://www.cosmicairservice.com/TrackNTrace.aspx`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, {
+        timeout: 60000,
+        waitUntil: "load",
+      });
+
+      await page.waitForSelector(`#TextBox1`, {
+        timeout: 10000,
+        waitUntil: "load",
+      });
+
+      await page.type("#TextBox1", trackingId);
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#Button1");
+
+      await page.waitForSelector(`#DataList1_Label9_0`, {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector("#DataList1_Label9_0")
+          .innerText.trim();
+
+        let from = await document
+          .querySelector("#DataList1_lblOrigin_0")
+          .innerText.trim();
+
+        let to = await document
+          .querySelector("#DataList1_lblDesti_0")
+          .innerText.trim();
+
+        return { deliveryStatus, from, to };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `http://www.cosmicairservice.com/TrackNTrace.aspx`,
+  },
+  "cosmic-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://www.cosmicairservice.com/TrackNTrace.aspx`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, {
+        timeout: 60000,
+        waitUntil: "load",
+      });
+
+      await page.waitForSelector(`#TextBox1`, {
+        timeout: 10000,
+        waitUntil: "load",
+      });
+
+      await page.type("#TextBox1", trackingId);
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#Button1");
+
+      await page.waitForSelector(`#DataList1_Label9_0`, {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector("#DataList1_Label9_0")
+          .innerText.trim();
+
+        let from = await document
+          .querySelector("#DataList1_lblOrigin_0")
+          .innerText.trim();
+
+        let to = await document
+          .querySelector("#DataList1_lblDesti_0")
+          .innerText.trim();
+
+        return { deliveryStatus, from, to };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `http://www.cosmicairservice.com/TrackNTrace.aspx`,
+  },
+  "citi-network-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.citinetwork.in/index.php?searchSelected=1&tracking_no=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, {
+        timeout: 60000,
+        waitUntil: "load",
+      });
+
+      await page.waitForSelector(
+        `body > section.section.shipment-pickup > div > div > div > div.accordion-body.active > div.delivery-info > table > tbody > tr`,
+        {
+          timeout: 10000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "body > section.section.shipment-pickup > div > div > div > div.accordion-body.active > div.tracking-info > table > tbody > tr > td:nth-child(6)"
+          )
+          .innerText.trim();
+
+        let from = await document
+          .querySelector(
+            "body > section.section.shipment-pickup > div > div > div > div.accordion-body.active > div.delivery-info > table > tbody > tr:nth-child(9) > td:nth-child(3)"
+          )
+          .innerText.trim();
+
+        let to = await document
+          .querySelector(
+            "body > section.section.shipment-pickup > div > div > div > div.accordion-body.active > div.tracking-info > table > tbody > tr > td:nth-child(4)"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "body > section.section.shipment-pickup > div > div > div > div.accordion-body.active > div.delivery-info > table > tbody > tr"
+          )
+        ).map((checkpoint) => {
+          return {
+            date: checkpoint.querySelector("td:nth-child(1)").innerText.trim(),
+            time: checkpoint.querySelector("td:nth-child(2)").innerText.trim(),
+            activity: checkpoint
+              .querySelector("td:nth-child(4)")
+              .innerText.trim(),
+            courierName: "Citi Network Courier",
+            location: checkpoint
+              .querySelector("td:nth-child(3)")
+              .innerText.trim(),
+          };
+        });
+
+        return { deliveryStatus, from, to, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) =>
+      `https://www.citinetwork.in/index.php?searchSelected=1&tracking_no=${trackingId}`,
+  },
+  "pon-pure-logistics-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://expres.ponpurelogistics.com/#trackwaybill`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, {
+        timeout: 60000,
+        waitUntil: "load",
+      });
+
+      await page.waitForSelector(`#wbtx`, {
+        timeout: 10000,
+        waitUntil: "load",
+      });
+
+      await page.type("#wbtx", trackingId);
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#trackwaybill > div:nth-child(3) > form > button");
+
+      await page.waitForTimeout(2000);
+      await page.waitForSelector(
+        `#trackwaybill > div:nth-child(3) > div.col-md-12.col-sm-12 > div.row.shop-tracking-status > div > div`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract checkpoints information
+        const activity = Array.from(
+          document.querySelectorAll(
+            "#trackwaybill > div:nth-child(3) > div.col-md-12.col-sm-12 > div.row.shop-tracking-status > div > div"
+          )
+        )
+          .slice(1)
+          .map((checkpoint) => {
+            return {
+              date: checkpoint
+                .querySelector("div.mypop")
+                .innerText.split("\n")[1]
+                .trim(),
+              time: "",
+              activity: checkpoint
+                .querySelector("div.mypop")
+                .innerText.split("\n")[0]
+                .trim(),
+              courierName: "Pon Pure Logistics",
+              location: "",
+            };
+          });
+
+        const checkpoints = activity.reverse();
+
+        return { checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://expres.ponpurelogistics.com/#trackwaybill`,
+  },
+  "mehta-transport-tracking": {
+    // scrapeData: async (trackingId, page) => {
+    //   // Construct the URL for tracking information
+    //   const url = `http://103.178.248.45:8080/transweb/?consignment=${trackingId}`;
+
+    //   //   try {
+    //   // Navigate to the tracking page and wait for it to load
+    //   await page.goto(url, {
+    //     timeout: 60000,
+    //     waitUntil: "load",
+    //   });
+
+    //   await page.waitForSelector(`#C02`, {
+    //     timeout: 10000,
+    //     waitUntil: "load",
+    //   });
+    //   await page.click("#C02");
+    //   await page.waitForTimeout(2000);
+
+    //   await page.waitForSelector(`#consignment`, {
+    //     timeout: 10000,
+    //     waitUntil: "load",
+    //   });
+
+    //   await page.type("#consignment", trackingId);
+
+    //   await page.waitForTimeout(2000);
+
+    //   await page.click("#cnbtn");
+
+    //   await page.waitForTimeout(2000);
+
+    //   const pageloaded = await page.waitForSelector(`#Status`, {
+    //     timeout: 12000,
+    //     waitUntil: "load",
+    //   });
+
+    //   if (!pageloaded) {
+    //     throw new Error();
+    //   }
+
+    //   // Extract tracking information using Puppeteer's evaluate function
+    //   const trackingInfo = await page.evaluate(async () => {
+
+    //     const deliveryStatus = await document
+    //       .querySelector("#Status")
+    //       .innerText.trim();
+
+    //     let from = await document
+    //       .querySelector("#BookingFrom")
+    //       .innerText.trim();
+
+    //     if (from.length == 0) {
+    //       throw new Error();
+    //     }
+
+    //     let to = await document.querySelector("#Destination").innerText.trim();
+
+    //     return { deliveryStatus, from, to };
+    //   });
+
+    //   return trackingInfo;
+
+    // },
+
+    url: (trackingId) =>
+      `http://103.178.248.45:8080/transweb/?consignment=${trackingId}`,
+  },
+  "accurate-freight-carrier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://103.13.97.213/AFC/Home/IndexDocketStatus?DocketNo=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        `#j-forms > div > table > tbody > tr:nth-child(3) > td:nth-child(6) > b`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "#j-forms > div > table > tbody > tr:nth-child(3) > td:nth-child(6) > b"
+          )
+          .innerText.trim();
+
+        let from = await document
+          .querySelector(
+            "#j-forms > div > table > tbody > tr:nth-child(10) > td:nth-child(3) > b"
+          )
+          .innerText.trim();
+
+        if (from.length == 0) {
+          throw new Error();
+        }
+
+        let to = await document
+          .querySelector(
+            "#j-forms > div > table > tbody > tr:nth-child(11) > td:nth-child(3) > b"
+          )
+          .innerText.trim();
+
+        return { deliveryStatus, from, to };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) =>
+      `http://103.13.97.213/AFC/Home/IndexDocketStatus?DocketNo=${trackingId}`,
+  },
+  "oxyzen-logistics-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://oxyzen.mywebxpress.com/GUI/Tracking_New1/Website/Track.Aspx?TenantName=oxyzen&CONSIGNMENT=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        `#dvTrackingDetails > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > div`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        const deliveryStatus = await document
+          .querySelector(
+            "#dvTrackingDetails > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > div"
+          )
+          .innerText.trim();
+
+        let from = await document
+          .querySelector(
+            "#dvTrackingDetails > table > tbody > tr:nth-child(1) > td:nth-child(5) > div > div.order-info"
+          )
+          .innerText.trim();
+
+        let to = await document
+          .querySelector(
+            "#dvTrackingDetails > table > tbody > tr:nth-child(1) > td:nth-child(6) > div > div.order-info"
+          )
+          .innerText.trim();
+
+        return { deliveryStatus, from, to };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) =>
+      `https://oxyzen.mywebxpress.com/GUI/Tracking_New1/Website/Track.Aspx?TenantName=oxyzen&CONSIGNMENT=${trackingId}`,
+  },
+  "hermes-germany-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.myhermes.de/empfangen/sendungsverfolgung/sendungsinformation#${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        `#fieldsetParcelProgress > div > div > div > div`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "#tnt-app-module > div > div > main > div > div.hg-spinner-bg-inactive > div:nth-child(2) > div.px-6.hg-bg-2.my-6 > h1"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#fieldsetParcelProgress > div > div > div > div"
+          )
+        )
+          .filter((checkpoint) => {
+            return checkpoint.getAttribute("data-parcel-status") == "done";
+          })
+          .map((checkpoint) => {
+            return {
+              date: checkpoint
+                .querySelector("div.m-parcelprogress__content > h3")
+                .innerText.trim(),
+              time: "",
+              activity: checkpoint
+                .querySelector("div.m-parcelprogress__content > p")
+                .innerText.trim(),
+              courierName: "Hermes Courier",
+              location: "",
+            };
+          });
+
+        return { deliveryStatus, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) =>
+      `https://www.myhermes.de/empfangen/sendungsverfolgung/sendungsinformation#${trackingId}`,
+  },
+  "hermes-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.myhermes.de/empfangen/sendungsverfolgung/sendungsinformation#${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        `#fieldsetParcelProgress > div > div > div > div`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "#tnt-app-module > div > div > main > div > div.hg-spinner-bg-inactive > div:nth-child(2) > div.px-6.hg-bg-2.my-6 > h1"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#fieldsetParcelProgress > div > div > div > div"
+          )
+        )
+          .filter((checkpoint) => {
+            return checkpoint.getAttribute("data-parcel-status") == "done";
+          })
+          .map((checkpoint) => {
+            return {
+              date: checkpoint
+                .querySelector("div.m-parcelprogress__content > h3")
+                .innerText.trim(),
+              time: "",
+              activity: checkpoint
+                .querySelector("div.m-parcelprogress__content > p")
+                .innerText.trim(),
+              courierName: "Hermes Courier",
+              location: "",
+            };
+          });
+
+        return { deliveryStatus, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) =>
+      `https://www.myhermes.de/empfangen/sendungsverfolgung/sendungsinformation#${trackingId}`,
+  },
+  "gms-worldwide-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://gmsworldwide.com/tracking.php`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(`#header > div > div.cons_track > p`, {
+        timeout: 10000,
+        waitUntil: "load",
+      });
+
+      await page.click("#header > div > div.cons_track > p");
+
+      await page.waitForTimeout(2000);
+
+      await page.type("#message", trackingId);
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#login-form > div.second_strip > form > input");
+      await page.waitForSelector(
+        `#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders1 > tbody > tr`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(6) > span:nth-child(1)"
+          )
+          .innerText.trim();
+
+        let from = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(5)"
+          )
+          .innerText.trim();
+
+        let to = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(4)"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders1 > tbody > tr"
+          )
+        )
+          .slice(1)
+          .map((checkpoint) => ({
+            date: checkpoint.querySelector("td:nth-child(3)").innerText,
+            time: checkpoint.querySelector("td:nth-child(4)").innerText,
+            activity: checkpoint.querySelector("td:nth-child(5)").innerText,
+            courierName: "GMS Worldwide Express",
+            location: checkpoint.querySelector("td:nth-child(2)").innerText,
+          }));
+
+        return { deliveryStatus, to, from, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://gmsworldwide.com/tracking.php`,
+  },
+  "gms-express-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://gmsworldwide.com/tracking.php`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(`#header > div > div.cons_track > p`, {
+        timeout: 10000,
+        waitUntil: "load",
+      });
+
+      await page.click("#header > div > div.cons_track > p");
+
+      await page.waitForTimeout(2000);
+
+      await page.type("#message", trackingId);
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#login-form > div.second_strip > form > input");
+      await page.waitForSelector(
+        `#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders1 > tbody > tr`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(6) > span:nth-child(1)"
+          )
+          .innerText.trim();
+
+        let from = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(5)"
+          )
+          .innerText.trim();
+
+        let to = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(4)"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders1 > tbody > tr"
+          )
+        )
+          .slice(1)
+          .map((checkpoint) => ({
+            date: checkpoint.querySelector("td:nth-child(3)").innerText,
+            time: checkpoint.querySelector("td:nth-child(4)").innerText,
+            activity: checkpoint.querySelector("td:nth-child(5)").innerText,
+            courierName: "GMS Worldwide Express",
+            location: checkpoint.querySelector("td:nth-child(2)").innerText,
+          }));
+
+        return { deliveryStatus, to, from, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://gmsworldwide.com/tracking.php`,
+  },
+  "gms-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://gmsworldwide.com/tracking.php`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(`#header > div > div.cons_track > p`, {
+        timeout: 10000,
+        waitUntil: "load",
+      });
+
+      await page.click("#header > div > div.cons_track > p");
+
+      await page.waitForTimeout(2000);
+
+      await page.type("#message", trackingId);
+
+      await page.waitForTimeout(2000);
+
+      await page.click("#login-form > div.second_strip > form > input");
+      await page.waitForSelector(
+        `#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders1 > tbody > tr`,
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(async () => {
+        // Extract delivery status
+        const deliveryStatus = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(6) > span:nth-child(1)"
+          )
+          .innerText.trim();
+
+        let from = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(5)"
+          )
+          .innerText.trim();
+
+        let to = await document
+          .querySelector(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders > tbody > tr > td:nth-child(4)"
+          )
+          .innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#mainsection > div > div.corp_profile_block > div.accordion > div > div > div.accordion-content > div > table.borders1 > tbody > tr"
+          )
+        )
+          .slice(1)
+          .map((checkpoint) => ({
+            date: checkpoint.querySelector("td:nth-child(3)").innerText,
+            time: checkpoint.querySelector("td:nth-child(4)").innerText,
+            activity: checkpoint.querySelector("td:nth-child(5)").innerText,
+            courierName: "GMS Worldwide Express",
+            location: checkpoint.querySelector("td:nth-child(2)").innerText,
+          }));
+
+        return { deliveryStatus, to, from, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://gmsworldwide.com/tracking.php`,
+  },
   "shree-maruti-courier-tracking": {
     scrapeData: async (trackingId, page) => {
       // Construct the URL for tracking information
@@ -1590,11 +2323,6 @@ const courierScrapers = {
 
     url: (trackingId) => `https://www.vrlgroup.in/track_consignment.aspx`,
   },
-  "accurate-freight-carrier-tracking": {
-    url: (trackingId) => {
-      return `http://103.13.97.213/AFC/Home/IndexDocketStatus?DocketNo=${trackingId}`;
-    },
-  },
 
   "digital-delivery-courier-tracking": {
     // 9811506222 | Digital Delivery Courier Tracking	f
@@ -1787,9 +2515,7 @@ const courierScrapers = {
   "dp-world-container-tracking": {
     url: (trackingId) => `https://www.dpworld.com/`,
   },
-  "gms-courier-tracking": {
-    url: (trackingId) => `https://gmsworldwide.com/`,
-  },
+
   "g-somani-courier-tracking": {
     url: (trackingId) => ``,
   },
@@ -1802,9 +2528,7 @@ const courierScrapers = {
   "jetline-courier-tracking": {
     url: (trackingId) => `https://www.jetlinecouriers.in/`,
   },
-  "cosmic-courier-tracking": {
-    url: (trackingId) => `http://www.cosmicusa.com/tracking.html`,
-  },
+
   "shipyaari-tracking": {
     url: (trackingId) => `https://www.shipyaari.com/`,
   },
@@ -1867,9 +2591,7 @@ const courierScrapers = {
 
     url: (trackingId) => `http://www.caperindia.com/trackmyshipment.aspx`,
   },
-  "oxyzen-logistics-tracking": {
-    url: (trackingId) => `https://www.oxyzenexpress.com/#/`,
-  },
+
   // Done
   "tci-freight-courier-tracking": {
     scrapeData: async (trackingId, page) => {
@@ -2026,9 +2748,6 @@ const courierScrapers = {
   "avikam-tracking": {
     url: (trackingId) => `http://avikamindia.com/`,
   },
-  "citi-network-courier-tracking": {
-    url: (trackingId) => `https://www.citinetwork.in/`,
-  },
 
   "marudhar-courier-tracking": {
     url: (trackingId) => `https://www.marudharexpress.com/`,
@@ -2079,10 +2798,7 @@ const courierScrapers = {
   "belpost-belarus-tracking": {
     url: (trackingId) => `https://www.belpost.by/`,
   },
-  "pon-pure-logistics-tracking": {
-    // https://expres.ponpurelogistics.com/#trackwaybill
-    url: (trackingId) => `https://expres.ponpurelogistics.com/#trackwaybill`,
-  },
+
   "dpex-worldwide-courier-tracking": {
     url: (trackingId) => `https://dpex.com/track-and-trace/`,
   },
@@ -2186,7 +2902,8 @@ const courierScrapers = {
     url: (trackingId) => "http://jetexservices.com/tracking.aspx",
   },
   "atc-tracking": {
-    url: (trackingId) => "https://atcls.net/",
+    url: (trackingId) =>
+      `http://123.108.34.253/ATCLive/TrackNTrace/frmTrackNTraceExternal.aspx?GCNo=${trackingId}`,
   },
   "postnord-courier-tracking": {
     url: (trackingId) => "https://www.postnord.se/en/our-tools/track-and-trace",
@@ -2601,7 +3318,7 @@ const courierScrapers = {
     url: (trackingId) => `https://www.collectplus.co.uk/`,
   },
   "combined-courier-tracking": {
-    url: (trackingId) => `http://combinedcourier.com/tracking`,
+    url: (trackingId) => `https://www.combinedcourier.com/`,
   },
   "con-way-freight-tracking": {
     url: (trackingId) => `https://ext-web.ltl-xpo.com/landing`,
@@ -3123,15 +3840,6 @@ const courierScrapers = {
   "gls-tracking-tracking": {
     url: () => "https://gls-group.eu/GROUP/en/parcel-tracking",
   },
-  "gms-courier-tracking": {
-    url: () => "https://gmsworldwide.com/",
-  },
-  "gms-express-courier-tracking": {
-    url: () => "https://gmsworldwide.com/",
-  },
-  "gms-worldwide-tracking": {
-    url: () => "https://gmsworldwide.com/",
-  },
   "go-shop-order-tracking": {
     url: () => "https://track.goshop.com.my/",
   },
@@ -3150,18 +3858,7 @@ const courierScrapers = {
   "greyhound-courier-tracking": {
     url: () => "http://www.shipgreyhound.com/e/sitepages/trackapackage.aspx",
   },
-  "hermes-courier-tracking": {
-    url: () => "https://eportal.hermesborderguru.com/tracking",
-  },
-  "hermes-germany-courier-tracking": {
-    url: () => "https://www.myhermes.de/empfangen/sendungsverfolgung/",
-  },
-  "hermes-world-courier-tracking": {
-    url: () => "https://www.evri.com/track-a-parcel",
-  },
-  "hermes-world-tracking": {
-    url: () => "https://www.evri.com/track-a-parcel",
-  },
+
   "hindustan-courier-tracking": {
     url: () => "http://hindustancourier.com/tracking.asp",
   },
@@ -3781,7 +4478,7 @@ const courierScrapers = {
     url: () => "https://www.tciexpress.in/trackingdocket.aspx",
   },
   "tcs-courier-tracking": {
-    url: () => "https://www.tcsexpress.com/",
+    url: (trackingId) => `https://www.tcsexpress.com/track/${trackingId}`,
   },
   "teepublic-order-tracking": {
     url: () => "https://www.teepublic.com/orders/lookup",
@@ -3792,10 +4489,7 @@ const courierScrapers = {
   "thailand-post-courier-tracking": {
     url: () => "https://international.thailandpost.com/track-status/?lang=en",
   },
-  "tirupati-courier-tracking": {
-    url: (trackingId) =>
-      `http://www.shreetirupaticourier.net/Frm_DocTrack.aspx?docno=${trackingId}`,
-  },
+
   "tnt-courier-tracking": {
     url: () => "https://www.tnt.com/express/en_in/site/home",
   },
@@ -3986,9 +4680,6 @@ const courierScrapers = {
   "skynet-worldwide-express-tracking": {
     url: () => "https://www.skynet.net/india",
   },
-  "tcs-courier-tracking": {
-    url: () => "https://www.tcsexpress.com/",
-  },
 
   "finnair-cargo-tracking": {
     url: () => "https://cargo.finnair.com/en",
@@ -4030,7 +4721,8 @@ const courierScrapers = {
     url: () => "https://onlinexpress.co.in/",
   },
   "seabreeze-cargo-tracking": {
-    url: () => "https://www.seabreezecouriers.com/",
+    url: (trackingId) =>
+      `https://www.seabreezecouriers.com/support/online-tracking?track_id=${trackingId}`,
   },
   "mml-express-courier-tracking": {
     url: () => "http://mmlexpress.com/index.php",
@@ -4056,10 +4748,7 @@ const courierScrapers = {
   "mpcl-courier-tracking": {
     url: () => "http://www.maxlogistic.com:8888/Maxlogistic/index.htm",
   },
-  "mehta-transport-tracking": {
-    url: (trackingId) =>
-      `http://103.178.248.45:8080/transweb/?consignment=${trackingId}`,
-  },
+
   "efc-logistics-container-tracking": {
     url: () => "https://efclogistics.com/index",
   },
@@ -6128,7 +6817,7 @@ const courierScrapers = {
     url: () => "https://www.spring-gds.com/",
   },
   "tcs-express-tracking": {
-    url: () => "https://www.tcsexpress.com/",
+    url: (trackingId) => `https://www.tcsexpress.com/track/${trackingId}`,
   },
   "vova-logistics-tracking": {
     url: () => "https://www.vovalogistics.com/index.php?q=admin/main/index/",
