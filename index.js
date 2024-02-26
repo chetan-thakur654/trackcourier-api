@@ -1,8 +1,11 @@
 const express = require("express");
+const cors = require("cors");
 const courierScrapers = require("./utility/courierScrapers");
 const puppeteer = require("puppeteer");
 
 const app = express();
+
+app.use(cors());
 
 const PORT = 3001;
 
