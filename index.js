@@ -7,7 +7,7 @@ const app = express();
 
 app.use(cors());
 
-const PORT = 3001;
+const PORT = 3002;
 
 // // Launch a headless browser with Puppeteer
 let browserInstance = puppeteer.launch({
