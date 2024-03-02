@@ -3129,12 +3129,18 @@ const courierScrapers = {
       // Extract tracking information using Puppeteer's evaluate function
       const trackingInfo = await page.evaluate(() => {
         // Extract delivery status
-        const deliveryStatus = document.querySelector(
-          "#result_div > div:nth-child(1)"
-        ).innerText.trim();
+        const deliveryStatus = document
+          .querySelector("#result_div > div:nth-child(1)")
+          .innerText.trim();
 
-        let from = document.querySelector("#collapseBooking > div > div > div:nth-child(2)").innerText.trim().split("\n")[1];
-        let to = document.querySelector("#collapseBooking > div > div > div:nth-child(3)").innerText.trim().split("\n")[1];
+        let from = document
+          .querySelector("#collapseBooking > div > div > div:nth-child(2)")
+          .innerText.trim()
+          .split("\n")[1];
+        let to = document
+          .querySelector("#collapseBooking > div > div > div:nth-child(3)")
+          .innerText.trim()
+          .split("\n")[1];
         // Extract checkpoints information
         const checkpoints = Array.from(
           document.querySelectorAll(`#collapseTransit > div > div`)
@@ -3154,11 +3160,10 @@ const courierScrapers = {
           location: "",
         }));
 
-        return { deliveryStatus,from , to, checkpoints };
+        return { deliveryStatus, from, to, checkpoints };
       });
 
       return trackingInfo;
-    
     },
 
     url: (trackingId) => `https://www.vrlgroup.in/track_consignment.aspx`,
@@ -3427,7 +3432,12 @@ const courierScrapers = {
       //   try {
       // Navigate to the tracking page and wait for it to load
       await page.goto(url, { timeout: 60000, waitUntil: "load" });
-      await page.waitForTimeout(2000);
+
+      // Wait for a specific selector to appear in the page
+      await page.waitForSelector("#txtCnsNo", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
 
       //Add tracking Id to input box
       await page.type("#txtCnsNo", trackingId);
@@ -3454,7 +3464,7 @@ const courierScrapers = {
 
       // Wait for a specific selector to appear in the page
       await page.waitForSelector("#divData > table:nth-child(6)", {
-        timeout: 60000,
+        timeout: 12000,
         waitUntil: "load",
       });
       await page.waitForTimeout(2000);
@@ -3468,9 +3478,15 @@ const courierScrapers = {
           ? "Delivered"
           : "In Transit";
 
-          let from = document.querySelector("#tdbkg").innerText.trim().split("-->")[0];
-        
-                let to =  document.querySelector("#tdbkg").innerText.trim().split("-->")[1];
+        let from = document
+          .querySelector("#tdbkg")
+          .innerText.trim()
+          .split("-->")[0];
+
+        let to = document
+          .querySelector("#tdbkg")
+          .innerText.trim()
+          .split("-->")[1];
         // Extract checkpoints information
         const checkpoints = Array.from(
           document.querySelectorAll(
