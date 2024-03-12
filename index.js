@@ -62,7 +62,7 @@ app.get("/api/track/:courier/:trackingNo", async (req, res) => {
   } catch (err) {
     return res.status(500).json({
       // error: err.message,
-      error: "Internal Server Error ! It Will Be Fixed Soon.",
+      error: "No tracking information found. Please check your tracking ID.",
       url: dynamicUrl,
     });
   } finally {
