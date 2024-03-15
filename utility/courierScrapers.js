@@ -1,4 +1,1106 @@
 const courierScrapers = {
+   "elta-courier-tracking": {
+    // scrapeData: async (trackingId, page) => {
+    //   // Construct the URL for tracking information
+    //   const url = `https://www.elta-courier.gr/search`;
+    //   // Navigate to the tracking page and wait for it to load
+    //   await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+    //   await page.waitForSelector("#voucher", {
+    //     timeout: 12000,
+    //     waitUntil: "load",
+    //   });
+    //   await page.waitForTimeout(2000);
+
+    //   await page.type("#voucher", trackingId);
+    //   await page.waitForTimeout(2000);
+
+    //   await page.click(
+    //     "#search-tool > div > div:nth-child(3) > div.col-sm-6.col-xs-8 > button"
+    //   );
+
+    //   await page.waitForSelector(
+    //     "#search_response > div > table > tbody > tr",
+    //     {
+    //       timeout: 15000,
+    //       waitUntil: "load",
+    //     }
+    //   );
+
+    //   await page.waitForTimeout(2000);
+
+    //   // Extract tracking information using Puppeteer's evaluate function
+    //   const trackingInfo = await page.evaluate(() => {
+    //     // Extract checkpoints information
+    //     const activity = Array.from(
+    //       document.querySelectorAll(
+    //         `#search_response > div > table > tbody > tr`
+    //       )
+    //     )
+    //       .slice(1)
+    //       .map((checkpoint) => ({
+    //         date: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+    //         time: checkpoint.querySelector("td:nth-child(3)")?.innerText.trim(),
+    //         activity: checkpoint
+    //           .querySelector("td:nth-child(1)")
+    //           ?.innerText.trim(),
+    //         courierName: "ELTA Courier",
+    //         location: checkpoint
+    //           .querySelector("td:nth-child(4)")
+    //           ?.innerText.trim(),
+    //       }));
+
+    //     const checkpoints = activity.reverse();
+    //     return { deliveryStatus, to, from, checkpoints };
+    //   });
+    //   return trackingInfo;
+    // },
+    url: (trackingId) => `https://www.elta-courier.gr/search`,
+  },
+  "bombino-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.bombinoexp.com/tracking.php`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#track_no", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#track_no", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#submit_tracking");
+
+      await page.waitForSelector(
+        "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(10) > td"
+          )
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(7) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(8) > td"
+            )
+            .innerText.trim();
+
+        let to =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(5) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(6) > td"
+            )
+            ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+          time: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(4)")
+            ?.innerText.trim(),
+          courierName: "Bombino Express",
+          location: checkpoint
+            .querySelector("td:nth-child(3)")
+            ?.innerText.trim(),
+        }));
+
+        // const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://www.bombinoexp.com/tracking.php`,
+  },
+  "bombino-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.bombinoexp.com/tracking.php`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#track_no", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#track_no", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#submit_tracking");
+
+      await page.waitForSelector(
+        "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(10) > td"
+          )
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(7) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(8) > td"
+            )
+            .innerText.trim();
+
+        let to =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(5) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(6) > td"
+            )
+            ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+          time: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(4)")
+            ?.innerText.trim(),
+          courierName: "Bombino Express",
+          location: checkpoint
+            .querySelector("td:nth-child(3)")
+            ?.innerText.trim(),
+        }));
+
+        // const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://www.bombinoexp.com/tracking.php`,
+  },
+  "bombino-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.bombinoexp.com/tracking.php`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#track_no", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#track_no", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#submit_tracking");
+
+      await page.waitForSelector(
+        "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(10) > td"
+          )
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(7) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(8) > td"
+            )
+            .innerText.trim();
+
+        let to =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(5) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(6) > td"
+            )
+            ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+          time: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(4)")
+            ?.innerText.trim(),
+          courierName: "Bombino Express",
+          location: checkpoint
+            .querySelector("td:nth-child(3)")
+            ?.innerText.trim(),
+        }));
+
+        // const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://www.bombinoexp.com/tracking.php`,
+  },
+  "bombino-express-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.bombinoexp.com/tracking.php`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#track_no", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#track_no", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#submit_tracking");
+
+      await page.waitForSelector(
+        "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(10) > td"
+          )
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(7) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(8) > td"
+            )
+            .innerText.trim();
+
+        let to =
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(5) > td"
+            )
+            ?.innerText.trim() +
+          " , " +
+          document
+            .querySelector(
+              "#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-4.col-md-4.col-sm-12 > div > table > tbody > tr:nth-child(6) > td"
+            )
+            ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#comment-form > div > div.col-lg-12.col-md-12.col-sm-12.mt-5.track-result.track-block > div > div.accordion-body.accordion-body_0.active > div > div > div.col-lg-8.col-md-8.col-sm-12 > div > table > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+          time: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(4)")
+            ?.innerText.trim(),
+          courierName: "Bombino Express",
+          location: checkpoint
+            .querySelector("td:nth-child(3)")
+            ?.innerText.trim(),
+        }));
+
+        // const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://www.bombinoexp.com/tracking.php`,
+  },
+  "vrl-logistics-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.vrlgroup.in/track_consignment.aspx`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#lrno", {
+        timeout: 20000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      //Add tracking Id to input box
+      await page.type("#lrno", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click(
+        "#team > div > div:nth-child(2) > div:nth-child(2) > input"
+      );
+
+      // await page.waitForNavigation();
+
+      await page.waitForSelector("#collapseTransit > div > div", {
+        timeout: 20000,
+        waitUntil: "load",
+      });
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        // Extract delivery status
+        const deliveryStatus = document
+          .querySelector("#result_div > div:nth-child(1)")
+          .innerText.trim();
+
+        let from = document
+          .querySelector("#collapseBooking > div > div > div:nth-child(2)")
+          .innerText.trim()
+          .split("\n")[1];
+        let to = document
+          .querySelector("#collapseBooking > div > div > div:nth-child(3)")
+          .innerText.trim()
+          .split("\n")[1];
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(`#collapseTransit > div > div`)
+        ).map((checkpoint) => ({
+          date: checkpoint
+            .querySelector("div:nth-child(3)")
+            .innerText.split("\n")[1]
+            .split(" ")[0],
+          time: checkpoint
+            .querySelector("div:nth-child(3)")
+            .innerText.split("\n")[1]
+            .split(" ")[1],
+          activity: `${checkpoint
+            .querySelector("div:nth-child(1)")
+            .innerText.split("\n")
+            .join(" ")} ${checkpoint
+            .querySelector("div:nth-child(2)")
+            .innerText.split("\n")
+            .join(" ")}`,
+          courierName: "VRL Logistics",
+          location: "",
+        }));
+
+        return { deliveryStatus, from, to, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://www.vrlgroup.in/track_consignment.aspx`,
+  },
+  "bpl-cargo-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+
+      const url = `https://bplcargo.com/track/?invoice=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      const resultElement = await page.$(
+        "#first > strong > strong > table > tbody > tr"
+      );
+
+      if (!resultElement) {
+        throw new Error();
+      }
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        // Extract delivery status
+        let deliveryStatus = document
+          .querySelector(
+            "#first > strong > table > tbody > tr:nth-child(4) > td > span"
+          )
+          .innerText.trim();
+
+        let from = document
+          .querySelector(
+            "#first > strong > table > tbody > tr:nth-child(2) > td:nth-child(1) > span"
+          )
+          .innerText.trim();
+        let to = document
+          .querySelector(
+            "#first > strong > table > tbody > tr:nth-child(2) > td:nth-child(2) > span"
+          )
+          .innerText.trim();
+        // let checkpoints;
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#first > strong > strong > table > tbody > tr"
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(2)").innerText,
+          time: "",
+          activity: checkpoint.querySelector("td:nth-child(4)").innerText,
+          courierName: "BPL Courier And Cargo Service",
+          location: checkpoint.querySelector("td:nth-child(3)").innerText,
+        }));
+
+        return { deliveryStatus, from, to, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => `https://bplcargo.com/track/?invoice=${trackingId}`,
+  },
+  "budget-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://budget1.net/tracking-result.php`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#tracking_id", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#tracking_id", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#wrap-middle > div.track1 > form > input");
+
+      await page.waitForSelector(
+        "#wrap-middle > div.contact-details > div > table:nth-child(3) > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#wrap-middle > div.contact-details > div > div:nth-child(2) > table > tbody > tr:nth-child(2) > td:nth-child(1)"
+          )
+          ?.innerText.split(": ")[1];
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from = document
+          .querySelector(
+            "#wrap-middle > div.contact-details > div > div:nth-child(2) > table > tbody > tr:nth-child(1) > td:nth-child(1)"
+          )
+          ?.innerText.split(": ")[1];
+
+        let to = document
+          .querySelector(
+            "#wrap-middle > div.contact-details > div > div:nth-child(2) > table > tbody > tr:nth-child(1) > td:nth-child(2)"
+          )
+          ?.innerText.split(": ")[1];
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#wrap-middle > div.contact-details > div > table:nth-child(3) > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+          time: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(3)")
+            ?.innerText.trim(),
+          courierName: "Budget Courier",
+          location: "",
+        }));
+
+        // const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `http://budget1.net/tracking-result.php`,
+  },
+
+  "inland-world-logistics-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://tracking.inland.in/Home/Index`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        "body > div.container-fluid.center-block > div.class1 > form > fieldset > div > div > label:nth-child(1) > input",
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+      await page.waitForTimeout(2000);
+
+      await page.type(
+        "body > div.container-fluid.center-block > div.class1 > form > fieldset > div > div > label:nth-child(1) > input",
+        trackingId
+      );
+      await page.waitForTimeout(2000);
+
+      await page.click(
+        "body > div.container-fluid.center-block > div.class1 > form > fieldset > div > div > label:nth-child(2) > input"
+      );
+
+      await page.waitForSelector(
+        "body > div.container-fluid.center-block > div.tables > div > div > div.portlet.box.green > div.portlet-body.flip-scroll > table > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus =
+          document
+            .querySelector(
+              "body > div.container-fluid.center-block > div.tables > div > div > div.portlet.box.green > div.portlet-body.flip-scroll > table > tbody > tr:last-child > td:nth-child(5)"
+            )
+            ?.innerText.trim() +
+          ", " +
+          document
+            .querySelector(
+              "body > div.container-fluid.center-block > div.tables > div > div > div.portlet.box.green > div.portlet-body.flip-scroll > table > tbody > tr:last-child > td:nth-child(4)"
+            )
+            ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from = document
+          .querySelector(
+            "body > div.container-fluid.center-block > div.tables > div > div > div.portlet.box.red > div.portlet-body.flip-scroll > div > table > tbody > tr > td:nth-child(3)"
+          )
+          ?.innerText.trim();
+
+        let to = document
+          .querySelector(
+            "body > div.container-fluid.center-block > div.tables > div > div > div.portlet.box.red > div.portlet-body.flip-scroll > div > table > tbody > tr > td:nth-child(4)"
+          )
+          ?.innerText.trim();
+
+        // Extract checkpoints information
+        const activity = Array.from(
+          document.querySelectorAll(
+            `body > div.container-fluid.center-block > div.tables > div > div > div.portlet.box.green > div.portlet-body.flip-scroll > table > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+          time: checkpoint.querySelector("td:nth-child(3)")?.innerText.trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(5)")
+            ?.innerText.trim(),
+          courierName: "Inland World Logistics",
+          location: checkpoint
+            .querySelector("td:nth-child(4)")
+            ?.innerText.trim(),
+        }));
+
+        const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://tracking.inland.in/Home/Index`,
+  },
+  "professional-courier-kuwait-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.tpcindia.com/track-info.aspx?id=${trackingId}`;
+
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        "#ContentPlaceHolderMid_ContentPlaceHolder2_Button8",
+        { timeout: 12000, waitUntil: "load" }
+      );
+      await page.waitForTimeout(2000);
+
+      // Click on an element (replace 'your-selector' with the actual selector)
+      await page.click("#ContentPlaceHolderMid_ContentPlaceHolder2_Button8");
+      // Wait for a specific selector to appear in the page
+      await page.waitForSelector(
+        "#ContentPlaceHolderMid_ContentPlaceHolder2_content > p",
+        { timeout: 12000, waitUntil: "load" }
+      );
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        // Extract delivery status
+        const deliveryStatus = document
+          .querySelector(
+            "#ContentPlaceHolderMid_ContentPlaceHolder2_Lbl_Status"
+          )
+          ?.innerText.trim();
+
+        let from = document
+          .querySelector(
+            "#ContentPlaceHolderMid_ContentPlaceHolder2_Lbl_origin"
+          )
+          ?.innerText.trim();
+        let to = document
+          .querySelector(
+            "#ContentPlaceHolderMid_ContentPlaceHolder2_Lbl_Destination"
+          )
+          ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            "#ContentPlaceHolderMid_ContentPlaceHolder2_content > p"
+          )
+        ).map((checkpoint) => {
+          let dateTimeString = checkpoint.getAttribute("data-date");
+          // Split the date and time components
+          const [month, day, year, time] = dateTimeString.split(" ");
+
+          // Extract time components
+          const [hours, minutes] = time.split(":");
+
+          return {
+            date: `${month} ${day} ${year}`,
+            time: `${hours}:${minutes}`,
+            activity: checkpoint.querySelector("a")?.innerText,
+            courierName: "The Professional Courier",
+            location: checkpoint.querySelector("span")?.innerText,
+          };
+        });
+
+        return { deliveryStatus, from, to, checkpoints };
+      });
+
+      return trackingInfo;
+    },
+
+    url: (trackingId) => {
+      return `https://www.tpcindia.com/track-info.aspx?id=${trackingId}`;
+    },
+  },
+  "tej-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://erp.tejcouriers.in:2020/Reports/CnsmntStatusRpt/CnoteStatus.aspx`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#CphBody_Txt_Consmt_No", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#CphBody_Txt_Consmt_No", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#CphBody_Btn_TrackWB");
+
+      await page.waitForSelector("#CphBody_Grid_WB_Header > tbody > tr", {
+        timeout: 15000,
+        waitUntil: "load",
+      });
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector("#CphBody_Grid_WB_Header_lbl_dest_br_nm_8")
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from = document
+          .querySelector("#CphBody_Grid_WB_Header_lbl_consmt_type_1")
+          ?.innerText.trim();
+
+        let to = document
+          .querySelector("#CphBody_Grid_WB_Header_lbl_source_br_1")
+          ?.innerText.trim();
+
+        // Extract checkpoints information
+        const activity = Array.from(
+          document.querySelectorAll(`#CphBody_Grid_WB_Header > tbody > tr`)
+        )
+          .slice(4, -2)
+          .map((checkpoint) => ({
+            date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+            time: checkpoint.querySelector("td:nth-child(2)")?.innerText.trim(),
+            activity: checkpoint
+              .querySelector("td:nth-child(6)")
+              ?.innerText.trim(),
+            courierName: "Tej Courier",
+            location: checkpoint
+              .querySelector("td:nth-child(3)")
+              ?.innerText.trim(),
+          }));
+
+        const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) =>
+      `http://erp.tejcouriers.in:2020/Reports/CnsmntStatusRpt/CnoteStatus.aspx`,
+  },
+  "lexship-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://track.lexship.com/`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector("#splitLines", {
+        timeout: 12000,
+        waitUntil: "load",
+      });
+      await page.waitForTimeout(2000);
+
+      await page.type("#splitLines", trackingId);
+      await page.waitForTimeout(2000);
+
+      await page.click("#btnSubmit");
+
+      await page.waitForSelector(
+        "#tableall > tbody > tr:nth-child(2) > td > div > ul > li",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#tableall > tbody > tr:nth-child(1) > td:nth-child(5) > p"
+          )
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from = document
+          .querySelector(
+            "#tableall > tbody > tr:nth-child(1) > td:nth-child(2) > div > p.text-muted > strong"
+          )
+          ?.innerText.trim();
+
+        let to = document
+          .querySelector(
+            "#tableall > tbody > tr:nth-child(1) > td:nth-child(4) > div > p.text-muted > strong"
+          )
+          ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#tableall > tbody > tr:nth-child(2) > td > div > ul > li`
+          )
+        )
+          .slice(0, -1)
+          .map((checkpoint) => ({
+            date: checkpoint.querySelector("div > strong")?.innerText.trim(),
+            time: "",
+            activity: checkpoint.querySelector("div > span")?.innerText.trim(),
+            courierName: "Lexship Courier",
+            location: "",
+          }));
+
+        // const checkpoints = activity.reverse();
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://track.lexship.com/`,
+  },
+  "b4-express-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `http://www.b4express.com/`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        "#ctl00_ContentPlaceHolder1_LeftPanel_txtHAWBNo",
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+      await page.waitForTimeout(2000);
+
+      await page.type(
+        "#ctl00_ContentPlaceHolder1_LeftPanel_txtHAWBNo",
+        trackingId
+      );
+      await page.waitForTimeout(2000);
+
+      await page.click("#ctl00_ContentPlaceHolder1_LeftPanel_htmlTrack");
+
+      await page.waitForSelector(
+        "#ctl00_ContentPlaceHolder1_grdTrackSummary_ctl02_LinkButton1",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      await page.click(
+        "#ctl00_ContentPlaceHolder1_grdTrackSummary_ctl02_LinkButton1"
+      );
+
+      await page.waitForSelector("#profile-tab", {
+        timeout: 15000,
+        waitUntil: "load",
+      });
+      await page.click("#profile-tab");
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        const deliveryStatus = document
+          .querySelector(
+            "#shipment > table > tbody > tr:nth-child(2) > td:nth-child(2)"
+          )
+          ?.innerText.trim();
+
+        // if (deliveryStatus.trim().length == 0) {
+        //   throw new Error();
+        // }
+
+        // Extract delivery status
+        let from = document
+          .querySelector(
+            "#shipment > table > tbody > tr:nth-child(7) > td:nth-child(2)"
+          )
+          ?.innerText.trim();
+
+        let to = document
+          .querySelector(
+            "#shipment > table > tbody > tr:nth-child(8) > td:nth-child(2)"
+          )
+          ?.innerText.trim();
+
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(`#profile > table > tbody > tr`)
+        ).map((checkpoint) => ({
+          date: checkpoint.querySelector("td:nth-child(1)")?.innerText.trim(),
+          time: "",
+          activity: checkpoint
+            .querySelector("td:nth-child(3)")
+            ?.innerText.trim(),
+          courierName: "B4 Express",
+          location: "",
+        }));
+
+        return { deliveryStatus, to, from, checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `http://www.b4express.com/`,
+  },
+  "pushpak-courier-tracking": {
+    scrapeData: async (trackingId, page) => {
+      // Construct the URL for tracking information
+      const url = `https://www.pushpakcourier.net/query.php`;
+      // Navigate to the tracking page and wait for it to load
+      await page.goto(url, { timeout: 60000, waitUntil: "load" });
+
+      await page.waitForSelector(
+        "#body-content > section:nth-child(2) > div > div > div > div > form > div > table > tbody > tr > td:nth-child(1) > input[type=text]",
+        {
+          timeout: 12000,
+          waitUntil: "load",
+        }
+      );
+      await page.waitForTimeout(2000);
+
+      await page.type(
+        "#body-content > section:nth-child(2) > div > div > div > div > form > div > table > tbody > tr > td:nth-child(1) > input[type=text]",
+        trackingId
+      );
+      await page.waitForTimeout(2000);
+
+      await page.click(
+        "#body-content > section:nth-child(2) > div > div > div > div > form > div > table > tbody > tr > td:nth-child(3) > button"
+      );
+
+      await page.waitForSelector(
+        "#body-content > section:nth-child(2) > div > div > div > div > div:nth-child(8) > table > tbody > tr",
+        {
+          timeout: 15000,
+          waitUntil: "load",
+        }
+      );
+
+      await page.waitForTimeout(2000);
+
+      // Extract tracking information using Puppeteer's evaluate function
+      const trackingInfo = await page.evaluate(() => {
+        // Extract checkpoints information
+        const checkpoints = Array.from(
+          document.querySelectorAll(
+            `#body-content > section:nth-child(2) > div > div > div > div > div:nth-child(8) > table > tbody > tr`
+          )
+        ).map((checkpoint) => ({
+          date: checkpoint
+            .querySelector("td:nth-child(1)")
+            ?.innerText.split(" ")[0]
+            .trim(),
+          time: checkpoint
+            .querySelector("td:nth-child(1)")
+            ?.innerText.split(" ")[1]
+            .trim(),
+          activity: checkpoint
+            .querySelector("td:nth-child(2)")
+            ?.innerText.split("\n")[0]
+            .trim(),
+          courierName: "Pushpak Courier",
+          location: "",
+        }));
+
+        // const checkpoints = activity.reverse();
+        return { checkpoints };
+      });
+      return trackingInfo;
+    },
+    url: (trackingId) => `https://www.pushpakcourier.net/query.php`,
+  },
   "qxpress-tracking": {
     scrapeData: async (trackingId, page) => {
       // Construct the URL for tracking information
@@ -5801,11 +6903,15 @@ const courierScrapers = {
       //   try {
       // Navigate to the tracking page and wait for it to load
       await page.goto(url, { timeout: 60000, waitUntil: "load" });
+      await page.waitForTimeout(2000);
 
       //Add tracking Id to input box
       await page.type("#trackingNoTrackDart", trackingId);
+      await page.waitForTimeout(2000);
 
       await page.click("#goBtnTrackDart");
+      await page.waitForTimeout(2000);
+
       await page.waitForNavigation({ timeout: 60000 });
 
       await page.click(
@@ -6145,12 +7251,6 @@ const courierScrapers = {
     },
   },
 
-  "tej-courier-tracking": {
-    url: (trackingId) => {
-      return `http://erp.tejcouriers.in:2020/Reports/CnsmntStatusRpt/CnoteStatus.aspx`;
-    },
-  },
-
   "dp-world-container-tracking": {
     url: (trackingId) => `https://www.dpworld.com/`,
   },
@@ -6380,13 +7480,6 @@ const courierScrapers = {
     url: (trackingId) => `https://www.futuresupplychains.com/#trackone`,
   },
 
-  "speed-and-safe-courier-tracking": {
-    url: (trackingId) => `https://www.gokulamspeedandsafe.com/`,
-  },
-  "b4-express-courier-tracking": {
-    url: (trackingId) => `http://www.b4express.com/tracking.aspx`,
-  },
-
   "marudhar-courier-tracking": {
     url: (trackingId) => `https://www.marudharexpress.com/`,
   },
@@ -6410,9 +7503,7 @@ const courierScrapers = {
     url: (trackingId) =>
       `https://www.skynet.net/tracking_public?skybill=${trackingId}`,
   },
-  "pushpak-courier-tracking": {
-    url: (trackingId) => `https://www.pushpakcourier.net/`,
-  },
+
   "v-trans-courier-tracking": {
     url: (trackingId) => `https://vtransgroup.com/track-trace-result`,
   },
@@ -6603,9 +7694,7 @@ const courierScrapers = {
   "air-king-courier-tracking": {
     url: (trackingId) => `https://airkingexpress.net/Track/Default.aspx`,
   },
-  "air-state-courier-tracking": {
-    url: (trackingId) => `https://www.airstatecourier.in/`,
-  },
+ 
   "air21-courier-tracking": {
     url: (trackingId) => `https://www.air21.com.ph/main/shipment-tracking`,
   },
@@ -6712,16 +7801,16 @@ const courierScrapers = {
     url: (trackingId) => `https://www.arrowxl.co.uk/`,
   },
   "asendia-germany-courier-tracking": {
-    url: (trackingId) => `https://www.asendia.com/`,
+    url: (trackingId) => `https://tracking.asendia.com/tracking/${trackingId}`,
   },
   "asendia-hk-courier-tracking": {
     url: (trackingId) => `https://www.asendia.hk/en`,
   },
   "asendia-uk-courier-tracking": {
-    url: (trackingId) => `https://www.asendia.co.uk/en`,
+    url: (trackingId) => `https://tracking.asendia.com/tracking/${trackingId}`,
   },
   "asendia-usa-courier-tracking": {
-    url: (trackingId) => `https://www.asendiausa.com/`,
+    url: (trackingId) => `https://tracking.asendia.com/tracking/${trackingId}`,
   },
   "asm-courier-tracking": {
     url: (trackingId) => `https://ijn.b45.myftpupload.com/track-your-order/`,
@@ -6800,9 +7889,7 @@ const courierScrapers = {
   "bombay-gujarat-transport-courier-tracking": {
     url: (trackingId) => `http://bgtc.in/`,
   },
-  "bombino-courier-tracking": {
-    url: (trackingId) => `https://www.bombinoexp.com/en-in`,
-  },
+
   "bonds-courier-tracking": {
     url: (trackingId) => `https://bondscouriers.com.au/`,
   },
@@ -7287,9 +8374,7 @@ const courierScrapers = {
   "elbex-courier-tracking": {
     url: () => "https://elbextrack.com/index.php/awb-tracking",
   },
-  "elta-courier-tracking": {
-    url: () => "https://www.elta-courier.gr/search",
-  },
+
   "emp-order-tracking": {
     url: () => "https://www.emp.co.uk/",
   },
@@ -7347,7 +8432,7 @@ const courierScrapers = {
     url: () => "https://www.eyebuydirect.com/order-tracking",
   },
   "falcon-courier-tracking": {
-    url: () => "http://www.falconcourier.net/track",
+    url: () => "http://www.falconcourier.net/tracking.asp",
   },
   "fanatics-order-tracking": {
     url: () => "https://www.fanatics.com/track-order",
@@ -7637,9 +8722,7 @@ const courierScrapers = {
   "leopard-courier-tracking": {
     url: () => "https://www.leopardscourier.com/",
   },
-  "lexship-courier-tracking": {
-    url: () => "https://track.lexship.com/",
-  },
+
   "links-courier-tracking": {
     url: () => "https://linkscourier.com/",
   },
@@ -7871,9 +8954,7 @@ const courierScrapers = {
   "purolator-courier-tracking": {
     url: () => "https://www.purolator.com/en",
   },
-  "pushpak-courier-tracking": {
-    url: () => "https://www.pushpakcourier.net/query.php",
-  },
+
   "qatar-parcel-tracking": {
     url: () => "https://qatarpost.qa/home",
   },
@@ -8383,9 +9464,7 @@ const courierScrapers = {
   "prime-express-tracking": {
     url: () => "http://www.primecrc.com/tracking.aspx",
   },
-  "shree-balaji-courier-tracking": {
-    url: () => "https://balajicourier.com/",
-  },
+
   "ccf-logistics-tracking": {
     url: () => "http://www.ccflogistic.com/",
   },
@@ -8460,9 +9539,6 @@ const courierScrapers = {
     url: () => "https://www.ghatgepatiltransport.com/",
   },
 
-  "speed-and-safe-courier-tracking": {
-    url: () => "https://www.gokulamspeedandsafe.com/",
-  },
   "gdl-courier-tracking": {
     url: () => "https://www.gatewaydistriparks.com/",
   },
@@ -8481,9 +9557,6 @@ const courierScrapers = {
   },
   "bullet-logistics-tracking": {
     url: () => "https://bulletlogistics.in/",
-  },
-  "inland-world-logistics-tracking": {
-    url: () => "https://www.inlandworldlogistics.com/tracking/",
   },
 
   "icl-tracking": {
@@ -8562,9 +9635,7 @@ const courierScrapers = {
   "franch-express-courier-tracking": {
     url: () => "http://www.franchexpress.com/",
   },
-  "bombino-tracking": {
-    url: () => "https://www.bombinoexp.com/en-in/tracking",
-  },
+
   "kpn-parcel-service-tracking": {
     url: () => "https://www.kpnparcel.in/",
   },
@@ -8687,9 +9758,7 @@ const courierScrapers = {
     url: (trackingId) =>
       `https://www.obnexpress.com/ConsignmentTracker.html?AirwayBillNo=${trackingId}`,
   },
-  "yes-courier-tracking": {
-    url: () => "http://www.yescourier.in/",
-  },
+
   "jaydeep-logistics-tracking": {
     url: () => "https://jaydeeplogistic.com/",
   },
@@ -8728,9 +9797,6 @@ const courierScrapers = {
     url: () => "https://kdcourier.com/",
   },
 
-  "inland-world-logistics-tracking": {
-    url: () => "https://www.inlandworldlogistics.com/",
-  },
   "royal-mail-tracking": {
     url: () => "http://www.royalmail.com/",
   },
@@ -10254,9 +11320,7 @@ const courierScrapers = {
   "sendle-tracking": {
     url: () => "https://www.sendle.com/",
   },
-  "bombino-express-tracking": {
-    url: () => "http://www.bombinoexp.com/",
-  },
+
   "palletways-tracking": {
     url: () => "https://www.palletwaysonline.com/",
   },
@@ -10582,7 +11646,8 @@ const courierScrapers = {
     url: () => "https://thelorry.com/",
   },
   "cargointl-de-tracking": {
-    url: () => "https://www.cargointernational.de/",
+    url: (trackingId) =>
+      `https://www.cargointernational.de/sendungsverfolgung/tracking/${trackingId}`,
   },
   "best-th-tracking": {
     url: () => "https://www.best-inc.co.th/",
@@ -10606,7 +11671,7 @@ const courierScrapers = {
     url: () => "https://www.raben-group.com/",
   },
   "morning-tracking": {
-    url: () => "https://www.mechk.com/",
+    url: () => "https://www.mechk.com/guest-order-tracking/",
   },
   "u-speedex-tracking": {
     url: () => "http://www.u-speedex.com/",
